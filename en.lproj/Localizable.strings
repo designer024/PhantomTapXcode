@@ -1,0 +1,65 @@
+/* 
+  Localizable.strings
+  PhantomTap
+
+  Created by ethanlin on 2025/11/17.
+  
+*/
+
+"must_be_enabled_to_start_scanning" = "Bluetooth must be enabled to start scanning.";
+
+"confirm_phantom_tap_is_on_and_nearby" = "Please confirm the device is on and nearby.";
+
+"email" = "Email";
+
+"password" = "Password";
+
+"password_confirm" = "Password Confirm";
+
+"ok" = "OK";
+
+"cancel" = "Cancel";
+
+"continue_as_guest" = "Sign-in as guest.";
+
+"signing_in" = "Signing in...";
+
+"line_signing_in" = "LINE signing in...";
+
+"sign_in_success" = "Sign in successfully";
+
+"sign_in_failed" = "Sign in failed";
+
+"try_again_later" = "Please try again later.";
+
+"contacting_server" = "Contacting server...";
+
+"notice" = "Notice";
+
+"keyboard_is_not_connected_check_your_ble_connection" = "The keyboard is not connected. Please check your Bluetooth connection.";
+
+"no_points_available_to_write" = "No points available for submission.";
+
+"all_items_must_have_a_keycode_assigned" = "All items must have a keyCode assigned before saving.";
+
+"duplicate_keys_detected_fix_them_before_submitting" = "Duplicate keys detected. Please fix them before submitting.";
+
+"sending" = "Sending";
+
+"sending_commands_to_keyboard" = "Sending commands to the keyboard...";
+
+"all_commands_are_completed" = "All commands are completed.";
+
+"no_items_can_be_saved" = "No items can be saved.";
+
+"save_file" = "Save file";
+
+"saved" = "File saved";
+
+"please_input_file_name" = "Enter file name";
+
+"try_again_later" = "Please try again later.";
+
+"select_file" = "Select file";
+
+"delete" = "Delete";

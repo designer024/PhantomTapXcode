@@ -1,0 +1,62 @@
+
+/* Class = "UIButton"; configuration.title = "START"; ObjectID = "RWv-eO-UwE"; */
+"RWv-eO-UwE.configuration.title" = "START";
+
+/* Class = "UIButton"; normalTitle = "Button"; ObjectID = "RWv-eO-UwE"; */
+"RWv-eO-UwE.normalTitle" = "Button";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "Zrq-tO-XlA"; */
+"Zrq-tO-XlA.text" = "Label";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "hK1-aT-S9a"; */
+"hK1-aT-S9a.text" = "Label";
+
+/* Class = "UIButton"; configuration.title = "Button"; ObjectID = "oiw-yQ-SdT"; */
+"oiw-yQ-SdT.configuration.title" = "Button";
+
+/* Class = "UIButton"; normalTitle = "Button"; ObjectID = "oiw-yQ-SdT"; */
+"oiw-yQ-SdT.normalTitle" = "Button";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "zOa-hn-oLk"; */
+"zOa-hn-oLk.text" = "Label";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "Kyv-HZ-oCI"; */
+"Kyv-HZ-oCI.text" = "搜尋中...";
+
+/*I8h-qt-FfX Device found！ */
+"I8h-qt-FfX.text" = "已找到您的設備！";
+
+/* OKM-wg-eUZ Device not found */
+"OKM-wg-eUZ.text" = "找不到您的裝置";
+
+/* 8L4-H4-z2j research */
+"8L4-H4-z2j.configuration.title" = "重新搜尋";
+
+/* J2h-PV-6Ez skip */
+"J2h-PV-6Ez.configuration.title" = "略過";
+
+/* 0ml-Zn-K9Y ok */
+"0ml-Zn-K9Y.configuration.title" = "好";
+
+/* ROS-Ql-3yR */
+"ROS-Ql-3yR.configuration.title" = "忘記密碼?";
+
+/* a4S-0y-zT8、EzE-NA-OIt */
+"a4S-0y-zT8.configuration.title" = "登入";
+"EzE-NA-OIt.configuration.title" = "登入";
+
+/* hKM-JM-9IT、9jZ-rz-WOG */
+"hKM-JM-9IT.text" = "或";
+"9jZ-rz-WOG.text" = "或";
+
+/* JL1-i2-bEG */
+"JL1-i2-bEG.text" = "還沒有帳號? ";
+
+/* HYp-EY-B6S、PsL-Bs-tXR */
+"HYp-EY-B6S.configuration.title" = "註冊";
+"PsL-Bs-tXR.configuration.title" = "註冊";
+
+/* BxB-zR-Yow */
+"BxB-zR-Yow.text" = "已經有帳號了! ";
+
+"nKB-PF-TPp.configuration.title" = "以訪客身份繼續";

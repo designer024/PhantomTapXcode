@@ -1,0 +1,68 @@
+/* 
+  Localizable.strings
+  PhantomTap
+
+  Created by ethanlin on 2025/11/17.
+  
+*/
+
+
+"must_be_enabled_to_start_scanning" = "必須開啟藍牙才能掃描";
+
+"confirm_phantom_tap_is_on_and_nearby" = "請確認您的 PhantomTap 鍵盤已開啟並在附近";
+
+"email" = "電子郵件";
+
+"password" = "密碼";
+
+"password_confirm" = "再次確認密碼";
+
+"ok" = "好";
+
+"cancel" = "取消";
+
+"continue_as_guest" = "以訪客身份繼續";
+
+"signing_in" = "登入中...";
+
+"line_signing_in" = "LINE 登入中...";
+
+"sign_in_success" = "登入成功";
+
+"sign_in_failed" = "登入失敗";
+
+"try_again_later" = "請再試一次";
+
+"contacting_server" = "與伺服器連線中...";
+
+"notice" = "提示";
+
+"keyboard_is_not_connected_check_your_ble_connection" = "尚未連線到鍵盤，請先確認藍牙連線狀態。";
+
+"no_points_available_to_write" = "沒有任何點位可送出";
+
+"all_items_must_have_a_keycode_assigned" = "請為所有物件設定 keyCode 後再儲存";
+
+"duplicate_keys_detected_fix_them_before_submitting" = "有重複的按鍵，請調整後再送出。";
+
+"sending" = "傳輸中";
+
+"sending_commands_to_keyboard" = "正在將指令寫入鍵盤…";
+
+"all_commands_are_completed" = "所有指令已傳送完畢";
+
+"no_items_can_be_saved" = "沒有任何物件可儲存";
+
+"save_file" = "儲存檔案";
+
+"saved" = "檔案已儲存";
+
+"please_input_file_name" = "請輸入檔案名稱";
+
+"try_again_later" = "請稍候再試";
+
+"select_file" = "選擇要載入的設定檔";
+
+"delete" = "刪除";
+
+
