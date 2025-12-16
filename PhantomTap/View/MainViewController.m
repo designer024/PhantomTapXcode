@@ -18,12 +18,13 @@
 #import "Utils.h"
 #import "CustomButtonStyleHelper.h"
 #import "JsonFilePickerView.h"
+#import "UIViewController+Toast.h"
 
 @interface MainViewController () <UIGestureRecognizerDelegate>
 {
     UIView *_sidebarCollapsed;
     UIView *_sidebarExpanded;
-    BOOL _isExpanded;
+    BOOL _isExpanded;    
     
     NSLayoutConstraint *_collapsedTopConstraint;
     NSLayoutConstraint *_collapsedLeadingConstraint;
@@ -36,20 +37,12 @@
     CustomPopupDialog *_sendingPopup;
 }
 
-
 @property (nonatomic, strong) NSMutableArray<PhantomTapView *> *phantomTapViewsList;
 @property (nonatomic, weak) PhantomTapView *selectedView;
 @property (nonatomic, assign) NSInteger viewIdCouner;
 
 @property (nonatomic, strong, nullable) CustomPopupDialog *currentPopup;
 @property (nonatomic, weak) UIStackView *jsonFilesStackView;
-
-// @property (nonatomic, strong) UIView *sidebarCollapsed;
-// @property (nonatomic, strong) UIView *sidebarExpanded;
-// @property (nonatomic, assign) BOOL isExpanded;
-
-// @property (nonatomic, strong) NSLayoutConstraint *sidebarTopConstraint;
-// @property (nonatomic, strong) NSLayoutConstraint *sidebarLeadingConstraint;
 
 @end
 
@@ -99,15 +92,13 @@
     // 連線就緒後，例如送一次螢幕校正
     [BTManager shared].onReady = ^{
         __strong typeof(weakSelf) self = weakSelf;
-        if (!self) return;
+        if (!self)
+        {
+            NSLog(@"[MainVC-ERR] onReady called but self is nil!");
+            return;
+        }
         
-        NSLog(@"[BLE] ✅ Peripheral ready, sending calibration...");
-        [self sendCalibration];
-        
-        // 校正到了，給韌體一個喘息時間再讀回確認
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-            [self readScreenSettingOnce];
-        });
+        [self handleDeviceReady];
     };
     
     
@@ -149,21 +140,33 @@
         
         NSLog(@"[PARSE] onData unknown packet");
     };
+    
+    if ([[BTManager shared] getConnected])
+    {
+        [self handleDeviceReady];
+    }
+    else
+    {
+        NSLog(@"[MainVC] ⚠️ 進來時尚未連線，將等待 onReady...");
+    }
 }
 
-
-
-#pragma mark - Calibration
-
-- (void)sendCalibration
+- (void)handleDeviceReady
 {
-    // 使用原生像素（和你 Android 版邏輯一致）
-    CGSize nb = [[UIScreen mainScreen] nativeBounds].size;
-    NSData *pkt = [BluetoothPacketBuilder buildScreenCalibrationPacketWithWidth:(NSInteger)nb.width height:(NSInteger)nb.height];
+    NSLog(@"[MainVC] 🚀 裝置就緒 (可能是剛連上，或是接手已連線裝置)，發送校正...");
+    [self showBottomToast:NSLocalizedString(@"connected_calibrating_the_screen", nil)];
     
-    [[BTManager shared] write:pkt toService:[BTManager Custom_Service_UUID] characteristic:[BTManager Write_Characteristic_UUID] withResponse:NO];
+    CGSize currentSize = [[self view] bounds].size;
+    CGFloat scale = [[UIScreen mainScreen] nativeScale];
     
-    NSLog(@"[WRITE] calibration pixels=%gx%g (iOS=1)", nb.width, nb.height);
+    NSInteger w = (NSInteger)lround(currentSize.width * scale);
+    NSInteger h = (NSInteger)lround(currentSize.height * scale);
+    
+    [self sendCalibrationWithWidth:w height:h];
+    
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self readScreenSettingOnce];
+    });
 }
 
 
@@ -240,10 +243,10 @@
     _sidebarCollapsed = [FloatingSidebarBuilder collapsedBarWithTarget:self];
     _sidebarExpanded = [FloatingSidebarBuilder expandedBarWithTarget:self];
     
-    [self.contentView addSubview:_sidebarCollapsed];
-    [self.contentView addSubview:_sidebarExpanded];
+    [self -> _contentView addSubview:_sidebarCollapsed];
+    [self -> _contentView  addSubview:_sidebarExpanded];
     
-    UILayoutGuide *g = [self.contentView safeAreaLayoutGuide];
+    UILayoutGuide *g = [self -> _contentView  safeAreaLayoutGuide];
     
     // 建立並儲存 collapsed bar 的約束
     _collapsedTopConstraint = [[_sidebarCollapsed topAnchor] constraintEqualToAnchor:[g topAnchor] constant:8];
@@ -265,16 +268,8 @@
         maxHeightConstraint,
     ]];
     
-    
-    /* 原來的方法
-    [NSLayoutConstraint activateConstraints:@[
-        [[_sidebarCollapsed leadingAnchor] constraintEqualToAnchor:[self.contentView leadingAnchor] constant:8],
-        [[_sidebarCollapsed topAnchor] constraintEqualToAnchor:[g topAnchor] constant:8],
-        
-        [[_sidebarExpanded leadingAnchor] constraintEqualToAnchor:[self.contentView leadingAnchor] constant:8],
-        [[_sidebarExpanded topAnchor] constraintEqualToAnchor:[g topAnchor] constant:8],
-    ]];
-    */
+    [[_sidebarCollapsed layer] setZPosition:9999];
+    [[_sidebarExpanded layer] setZPosition:9999];
     
     _isExpanded = NO;
     [_sidebarExpanded setHidden:YES];
@@ -296,6 +291,19 @@
     // [panExpanded setCancelsTouchesInView:NO];
     // [panExpanded setDelegate:(id<UIGestureRecognizerDelegate>)self];
     // [_sidebarExpanded addGestureRecognizer:panExpanded];
+}
+
+- (void)bringSidebarsToFront
+{
+    if (_sidebarCollapsed)
+    {
+        [self -> _contentView bringSubviewToFront:_sidebarCollapsed];
+    }
+    
+    if (_sidebarExpanded)
+    {
+        [self -> _contentView bringSubviewToFront:_sidebarExpanded];
+    }
 }
 
 
@@ -344,6 +352,11 @@
     // 建 TapAction
     TapAction *action = [[TapAction alloc] initWithId:self.viewIdCouner++ orientation:orientationStr screenW:(NSInteger)nb.width screenH:(NSInteger)nb.height posX:posX_pts posY:posY_pts keyCode:@"null" pressEvent:YES];
     
+    PhantomTapView *ptv = [self createAndAddPhantomTapViewWithAction:action];
+    
+    [self handleTapViewSeleted:ptv];
+    
+    /*
     __weak typeof(self) wself = self;
     PhantomTapView *ptv = [[PhantomTapView alloc] initWithAction:action onSelected:^(PhantomTapView * _Nonnull aPhantomTapView) {
         // 單選
@@ -366,7 +379,8 @@
     }];
     
     // 加到畫面（用 frame 佈局，不走 Auto Layout）
-    [self.contentView addSubview:ptv];
+    [self -> _contentView addSubview:ptv];
+    // [self.contentView addSubview:ptv];
     [self -> _phantomTapViewsList addObject:ptv];
     
     // 預設選中剛新增的點
@@ -377,6 +391,9 @@
     self.selectedView = ptv;
     
     [self becomeFirstResponder];
+    
+    [self bringSidebarsToFront];
+    */
 }
 
 - (void)onTapPickPhoto
@@ -413,13 +430,37 @@
 
 - (void)onTapClear
 {
-    for (PhantomTapView *v in self -> _phantomTapViewsList)
+    if ([self -> _phantomTapViewsList count] == 0)
     {
-        [v removeFromSuperview];
+        return;
     }
-    [self -> _phantomTapViewsList removeAllObjects];
-    self.selectedView = nil;
-    self.viewIdCouner = 0;
+    
+    CustomPopupDialog *popup = [CustomPopupDialog showInView:[self view] style:CustomPopupDialogStyleDoubleButton title:NSLocalizedString(@"confirm_clear", nil) message:NSLocalizedString(@"confirm_clear_message", nil) positiveButtonLabel:NSLocalizedString(@"clear", nil) negativeButtonLabel:NSLocalizedString(@"cancel", nil) onPositive:nil onNegative:nil];
+    
+    __weak typeof(self) weakSelf = self;
+    __weak CustomPopupDialog *weakPopup = popup;
+    
+    popup.onPositive = ^{
+        [weakPopup dismiss];
+        
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) return;
+        
+        for (PhantomTapView *v in self -> _phantomTapViewsList)
+        {
+            [v removeFromSuperview];
+        }
+        [strongSelf -> _phantomTapViewsList removeAllObjects];
+        
+        strongSelf -> _selectedView = nil;
+        strongSelf -> _viewIdCouner = 0;
+        
+        NSLog(@"[MainVC] All items cleared.");
+    };
+    
+    popup.onNegative = ^{
+        [weakPopup dismiss];
+    };
 }
 
 - (void)onWriteToKeyboard
@@ -1311,15 +1352,21 @@
 
     NSLog(@"[DEBUG] apply keymap: %@", [aFile nickname]);
 
-    for (UIView *v in self -> _phantomTapViewsList)
+    NSArray *currentViews = [self -> _phantomTapViewsList copy];
+    for (UIView *v in currentViews)
     {
         [v removeFromSuperview];
     }
     [self -> _phantomTapViewsList removeAllObjects];
     
+    self -> _viewIdCouner = 0;
+    
     CGSize viewSize = [[self view] bounds].size;
-    CGFloat originW = (CGFloat)[aFile portraitW];
-    CGFloat originH = (CGFloat)[aFile portraitH];
+    
+    CGFloat originW = ([aFile portraitW] > 0) ? (CGFloat)[aFile portraitW] : [[UIScreen mainScreen] nativeBounds].size.width;
+    CGFloat originH = ([aFile portraitH] > 0) ? (CGFloat)[aFile portraitH] : [[UIScreen mainScreen] nativeBounds].size.height;
+    
+    CGFloat scaleFactor = [[UIScreen mainScreen] nativeScale];
     
     __weak typeof(self) weakSelf = self;
     
@@ -1328,11 +1375,24 @@
         if (![act isKindOfClass:[TapAction class]]) continue;
         TapAction *ta = (TapAction *)act;
         
-        CGFloat scaleX = (originW > 0) ? viewSize.width / originW : 1.0;
-        CGFloat scaleY = (originH > 0) ? viewSize.height / originH : 1.0;
+        if ([ta actionId] >= self -> _viewIdCouner)
+        {
+            self -> _viewIdCouner = [ta actionId] + 1;
+        }
         
-        CGPoint center = CGPointMake([ta posX] * scaleX, [ta posY] * scaleY);
+        CGFloat pixelX = [ta posX] * (viewSize.width * scaleFactor / originW);
+        CGFloat pixelY = [ta posY] * (viewSize.height * scaleFactor / originH);
+       
+        CGFloat pointCenterX = pixelX / scaleFactor;
+        CGFloat pointCenterY = pixelY / scaleFactor;
         
+        CGFloat defaultSize = 56.0;
+        [ta setPosX:pointCenterX - (defaultSize / 2.0)];
+        [ta setPosY:pointCenterY - (defaultSize / 2.0)];
+        
+        [self createAndAddPhantomTapViewWithAction:ta];
+        
+        /*
         PhantomTapView *tapView = [[PhantomTapView alloc] initWithAction:ta onSelected:^(PhantomTapView * _Nonnull aPhantomTapView) {
             __strong typeof(weakSelf) strongSelf = weakSelf;
             if (!strongSelf) return;
@@ -1346,8 +1406,39 @@
             if (!strongSelf) return;
             [strongSelf onPhantomTapViewPositionCommitted:aPhantomTapView];
         }];
+        
+        [self -> _contentView addSubview:tapView];
+        // [self.contentView addSubview:tapView];
+        [self -> _phantomTapViewsList addObject:tapView];
+        */
     }
+    
+    [self bringSidebarsToFront];
 }
+
+
+#pragma mark - PhantomTapView Factory Helper
+
+- (PhantomTapView *)createAndAddPhantomTapViewWithAction:(TapAction *)aAction
+{
+    __weak typeof(self) weakSelf = self;
+    
+    PhantomTapView *ptv = [[PhantomTapView alloc] initWithAction:aAction onSelected:^(PhantomTapView * _Nonnull aPhantomTapView) {
+        [weakSelf handleTapViewSeleted:aPhantomTapView];
+    } onDelete:^(PhantomTapView * _Nonnull aPhantomTapView) {
+        [weakSelf handleTapViewDelete:aPhantomTapView];
+    } onPositionCommed:^(PhantomTapView * _Nonnull aPhantomTapView) {
+        [weakSelf onPhantomTapViewPositionCommitted:aPhantomTapView];
+    }];
+    
+    [self -> _contentView addSubview:ptv];
+    [self -> _phantomTapViewsList addObject:ptv];
+    
+    [self bringSidebarsToFront];
+    
+    return ptv;
+}
+
 
 #pragma mark - PhantomTapView Handlers
 
@@ -1357,27 +1448,74 @@
     {
         [v setViewSelected:(v == aSelectedView)];
     }
+    self -> _selectedView = aSelectedView;
     
+    [[aSelectedView superview] bringSubviewToFront:aSelectedView];
+    [self bringSidebarsToFront];
+    
+    if (![self isFirstResponder])
+    {
+        [self becomeFirstResponder];
+    }
     NSLog(@"[Editor] Selected Key: %@", [[aSelectedView action] keyCode]);
 }
 
 - (void)handleTapViewDelete:(PhantomTapView *)aDeletedView
 {
     [aDeletedView removeFromSuperview];
-    
     [self -> _phantomTapViewsList removeObject:aDeletedView];
+    
+    if (self -> _selectedView == aDeletedView)
+    {
+        self -> _selectedView = nil;
+    }
 }
 
 - (void)onPhantomTapViewPositionCommitted:(PhantomTapView *)aPhantomTapView
 {
     CGPoint p = [aPhantomTapView centerOnScreen];
-    // [aPhantomTapView action].posX = p.x;
-    // [aPhantomTapView action].posY = p.y;
+    
     [[aPhantomTapView action] setPosX:p.x];
     [[aPhantomTapView action] setPosY:p.y];
     
+    [aPhantomTapView clampIntoSuperviewBounds];
+    
     NSLog(@"[DEBUG] position committed id=%ld (%.1f, %.1f)", (long)[[aPhantomTapView action] actionId], p.x, p.y);
 }
+
+
+#pragma mark - 螢幕旋轉處理 (對應 Android onConfigurationChanged)
+
+- (void)viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator
+{
+    [super viewWillTransitionToSize:size withTransitionCoordinator:coordinator];
+    
+    // 我們等到旋轉動畫結束後，再傳送新的解析度給硬體
+    [coordinator animateAlongsideTransition:nil completion:^(id<UIViewControllerTransitionCoordinatorContext>  _Nonnull context) {
+        // 取得當前的原生縮放比例
+        CGFloat scale = [[UIScreen mainScreen] nativeScale];
+        
+        // 將 Points 換算成 Pixels
+        NSInteger widthInPixels = (NSInteger)lround(size.width * scale);
+        NSInteger heightInPixels = (NSInteger)lround(size.height * scale);
+        
+        NSLog(@"[Rotation] Screen rotated to: %.0fx%.0f pts -> %ldx%ld px", size.width, size.height, (long)widthInPixels, (long)heightInPixels);
+        
+        // 發送校正封包
+        [self sendCalibrationWithWidth:widthInPixels height:heightInPixels];
+    }];
+}
+
+- (void)sendCalibrationWithWidth:(NSInteger)aWidth height:(NSInteger)aHeight
+{
+    NSData *pkt = [BluetoothPacketBuilder buildScreenCalibrationPacketWithWidth:aWidth height:aHeight];
+    
+    [[BTManager shared] write:pkt toService:[BTManager Custom_Service_UUID] characteristic:[BTManager Write_Characteristic_UUID] withResponse:NO];
+    
+    NSLog(@"[WRITE] calibration pixels=%ldx%ld", (long)aWidth, (long)aHeight);
+}
+
+
 
 
 #pragma mark - API Test

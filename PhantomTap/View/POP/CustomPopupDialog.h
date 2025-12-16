@@ -60,8 +60,6 @@ typedef void(^CustomPopupHandler)(void);
 /// 關閉視窗
 - (void)dismiss;
 
-
-
 @end
 
 NS_ASSUME_NONNULL_END

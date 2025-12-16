@@ -62,7 +62,7 @@
 
 - (void)commonInit
 {
-    self.backgroundColor = [UIColor clearColor];
+    [self setBackgroundColor:[UIColor clearColor]];
 
     // 1) 半透明背景
     _dimmingView = [[UIView alloc] initWithFrame:[self bounds]];
@@ -110,16 +110,47 @@
     [_cardView addSubview:_buttonsContainer];
 
     // 7) Positive button
-    _positiveButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    _positiveButton = [UIButton buttonWithType:UIButtonTypeCustom];
     [_positiveButton setTranslatesAutoresizingMaskIntoConstraints:NO];
     [_positiveButton addTarget:self action:@selector(handlePositiveTap) forControlEvents:UIControlEventTouchUpInside];
     [_buttonsContainer addSubview:_positiveButton];
+    
+    [_positiveButton setBackgroundColor:[CustomButtonStyleHelper brookCyanColor]];
+    // 膠囊圓角：高度的一半
+    [[_positiveButton layer] setCornerRadius:CGRectGetHeight([_positiveButton bounds]) / 2.0];
+    [[_positiveButton layer] setMasksToBounds:YES];
+    // 文字樣式
+    [_positiveButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [[_positiveButton titleLabel] setFont:[UIFont fontWithName:@"NotoSansTC-Black" size:14.0]];    
+    // 按下去稍微變暗
+    UIColor *pressedColor = [[CustomButtonStyleHelper brookCyanColor] colorWithAlphaComponent:0.7];
+    UIImage *normalBg = [CustomButtonStyleHelper imageWithColor:[CustomButtonStyleHelper brookCyanColor]];
+    UIImage *highlightBg = [CustomButtonStyleHelper imageWithColor:pressedColor];
+    [_positiveButton setBackgroundImage:normalBg forState:UIControlStateNormal];
+    [_positiveButton setBackgroundImage:highlightBg forState:UIControlStateHighlighted];
 
     // 8) Negative button
     _negativeButton = [UIButton buttonWithType:UIButtonTypeSystem];
     [_negativeButton setTranslatesAutoresizingMaskIntoConstraints:NO];
     [_negativeButton addTarget:self action:@selector(handleNegativeTap) forControlEvents:UIControlEventTouchUpInside];
     [_buttonsContainer addSubview:_negativeButton];
+    // 白底
+    [_negativeButton setBackgroundColor:[UIColor whiteColor]];
+    // 膠囊圓角：高度的一半
+    [[_negativeButton layer] setCornerRadius:CGRectGetHeight([_negativeButton bounds]) / 2.0];
+    [[_negativeButton layer] setMasksToBounds:YES];
+    // 邊框
+    [[_negativeButton layer] setBorderWidth:2.0];
+    [[_negativeButton layer] setBorderColor:[CustomButtonStyleHelper brookCyanColor].CGColor];
+    // 文字顏色
+    [_negativeButton setTitleColor:[CustomButtonStyleHelper brookCyanColor] forState:UIControlStateNormal];
+    [[_negativeButton titleLabel] setFont:[UIFont fontWithName:@"NotoSansTC-Black" size:14.0]];
+    // 按下去讓底色稍微變淺一點
+    UIColor *pressedColorForNeg = [[UIColor whiteColor] colorWithAlphaComponent:0.8];
+    UIImage *normalBgForNeg = [CustomButtonStyleHelper imageWithColor:[UIColor whiteColor]];
+    UIImage *highlightBgForNeg = [CustomButtonStyleHelper imageWithColor:pressedColorForNeg];
+    [_negativeButton setBackgroundImage:normalBgForNeg forState:UIControlStateNormal];
+    [_negativeButton setBackgroundImage:highlightBgForNeg forState:UIControlStateHighlighted];
 
     //
     // ====== Auto Layout ======
@@ -357,6 +388,8 @@
 
             [_positiveButton setHidden:NO];
             [_negativeButton setHidden:YES];
+            
+            [CustomButtonStyleHelper applyFilledSmallButtonStyleTo:_positiveButton];
 
             NSString *btnTitle = aPositiveButtonLabel ?: NSLocalizedString(@"ok", nil);
             [_positiveButton setTitle:btnTitle forState:UIControlStateNormal];
@@ -377,6 +410,9 @@
 
             [_positiveButton setHidden:NO];
             [_negativeButton setHidden:NO];
+            
+            [CustomButtonStyleHelper applyFilledSmallButtonStyleTo:_positiveButton];
+            [CustomButtonStyleHelper applyOutlineSmallButtonStyleTo:_negativeButton];
 
             NSString *posTitle = aPositiveButtonLabel ?: NSLocalizedString(@"ok", nil);
             NSString *negTitle = aNegativeButtonLabel ?: NSLocalizedString(@"ok", nil);

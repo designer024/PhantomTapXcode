@@ -8,8 +8,6 @@
 
 "must_be_enabled_to_start_scanning" = "Bluetooth must be enabled to start scanning.";
 
-"confirm_phantom_tap_is_on_and_nearby" = "Please confirm the device is on and nearby.";
-
 "email" = "Email";
 
 "password" = "Password";
@@ -63,3 +61,21 @@
 "select_file" = "Select file";
 
 "delete" = "Delete";
+
+"clear" = "Clear";
+
+"confirm_clear" = "Confirm clear";
+
+"confirm_clear_message" = "All marked points and settings on the screen will be removed.\nAre you sure you want to proceed?";
+
+"cannot_fine_your_device" = "Device not found";
+
+"confirm_phantom_tap_is_on_and_nearby" = "Please confirm the device is on and nearby.";
+
+"research" = "Re-search";
+
+"skip" = "Skip";
+
+"device_found" = "Device found!";
+
+"connected_calibrating_the_screen" = "Connected. Calibrating the screen…";

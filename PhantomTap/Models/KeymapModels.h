@@ -12,7 +12,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 /// 對應 Kotlin: enum class KeymapType { DRAGGABLE_TAP, SWIPE }
-typedef NS_ENUM(NSInteger, KeymapType) {
+typedef NS_ENUM(NSInteger, KeymapType)
+{
     KeymapTypePhantomTap = 0,
     KeymapTypeSwipe = 1,
     KeymapTypeJoystick = 2,

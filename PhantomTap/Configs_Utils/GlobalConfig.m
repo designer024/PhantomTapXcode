@@ -27,6 +27,5 @@ static NSString *EthanDebugTag = @"EthanLinPhantomTapTag";
     return 20251017;
 }
 
-
 @end
 

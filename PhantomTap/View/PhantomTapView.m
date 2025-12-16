@@ -77,12 +77,13 @@ static const CGFloat kPTVDeleteRadius = 18.0;
     [self -> _keyLabel setTextColor:[UIColor whiteColor]];
     [self -> _keyLabel setAutoresizingMask:(UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight)];
     [self addSubview:self -> _keyLabel];
-    
      
     self -> _delecteButtonView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"delecte_view"]];
     [self -> _delecteButtonView setFrame:CGRectMake([self bounds].size.width - 24, 0, 24, 24)];
     [self -> _delecteButtonView setHidden:YES];
     [self addSubview:self -> _delecteButtonView];
+    
+    [self updateKeyCode:[aAction keyCode]];
     
     return self;
 }
@@ -153,19 +154,22 @@ static const CGFloat kPTVDeleteRadius = 18.0;
 
 - (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 {
-    UITouch *t = touches.anyObject; if (!t) return;
+    UITouch *t = [touches anyObject];
+    if (!t) return;
 
-    CGPoint cur = [t locationInView:self.superview];
+    CGPoint cur = [t locationInView:[self superview]];
     CGPoint prev = _prevCenterInSuperview;
-    CGFloat dx = cur.x - prev.x, dy = cur.y - prev.y;
+    CGFloat dx = cur.x - prev.x;
+    CGFloat dy = cur.y - prev.y;
+    
+    CGPoint newCenter = [self center];
+    newCenter.x += dx;
+    newCenter.y += dy;
+    
+    [self setCenter:newCenter];
+    [self clampIntoSuperviewBounds];
 
-    CGRect f = self.frame;
-    f.origin.x += dx; f.origin.y += dy;
-
-    // 限制在父容器內
-    self.frame = [self p_clampRect:f inside:self.superview.bounds];
-
-    _prevCenterInSuperview = self.center;
+    _prevCenterInSuperview = [self center];
 }
 
 - (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
@@ -217,19 +221,26 @@ static const CGFloat kPTVDeleteRadius = 18.0;
 
 - (void)clampIntoSuperviewBounds
 {
-    if (!self.superview) return;
+    if (![self superview]) return;
 
-    CGRect bounds = self.superview.bounds;
-    if (@available(iOS 11.0, *)) {
+    CGRect boundary = [[self superview] bounds];
+    if (@available(iOS 11.0, *))
+    {
         // 盡量避免跑進安全區外
-        UIEdgeInsets insets = self.superview.safeAreaInsets;
-        bounds = UIEdgeInsetsInsetRect(bounds, insets);
+        UIEdgeInsets insets = [[self superview] safeAreaInsets];
+        boundary = UIEdgeInsetsInsetRect(boundary, insets);
     }
-    self.frame = [self p_clampRect:self.frame inside:bounds];
+    
+    CGPoint c = [self center];
+    
+    CGFloat newCenterX = MAX(CGRectGetMinX(boundary), MIN(c.x, CGRectGetMaxX(boundary)));
+    CGFloat newCenterY = MAX(CGRectGetMinY(boundary), MIN(c.y, CGRectGetMaxY(boundary)));
+    
+    [self setCenter:CGPointMake(newCenterX, newCenterY)];
 
     // 回寫模型
-    self.action.posX = CGRectGetMinX(self.frame);
-    self.action.posY = CGRectGetMinY(self.frame);
+    [[self action] setPosX:CGRectGetMinX([self frame])];
+    [[self action] setPosY:CGRectGetMinY([self frame])];
 }
 
 - (CGRect)p_clampRect:(CGRect)aRect inside:(CGRect)aBounds

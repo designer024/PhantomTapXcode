@@ -312,28 +312,35 @@
     }
 }
 
+// ✅ 連線成功
 - (void)centralManager:(CBCentralManager *)central didConnectPeripheral:(CBPeripheral *)peripheral
 {
+    NSLog(@"[BLE-DEBUG] didConnect: %@", [peripheral name]);
+    
     if (self.onConnect)
     {
         self.onConnect(peripheral, nil);
     }
     
-    [peripheral discoverServices:@[[BTManager Custom_Service_UUID]]];
+    CBUUID *targetUUID = [BTManager Custom_Service_UUID];
+    NSLog(@"[BLE-DEBUG] Discovering services with UUID: %@", targetUUID);
+    [peripheral discoverServices:@[targetUUID]];
 }
 
-
+// ❌ 連線失敗
 - (void)centralManager:(CBCentralManager *)central didFailToConnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
 {
+    NSLog(@"[BLE-DEBUG] didFailToConnect: %@, error: %@", [peripheral name], error);
     if (self.onConnect)
     {
         self.onConnect(peripheral, error);
     }
 }
 
-
+// 🔌 斷線
 - (void)centralManager:(CBCentralManager *)central didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
 {
+    NSLog(@"[BLE-DEBUG] didDisconnect: %@, error: %@", [peripheral name], error);
     _connectedPeripheral = nil;
     [_charCache removeAllObjects];
 }
@@ -343,19 +350,45 @@
 
 #pragma mark - CBPeripheral Delegate
 
+// ✅ 發現 Services
 - (void)peripheral:(CBPeripheral *)peripheral didDiscoverServices:(NSError *)error
 {
+    if (error)
+    {
+        NSLog(@"[BLE-DEBUG] didDiscoverServices Error: %@", error);
+        return;
+    }
+    
+    if ([[peripheral services] count] == 0)
+    {
+        NSLog(@"[BLE-DEBUG] No services found! Check your Custom_Service_UUID.");
+        return;
+    }
+    
     for (CBService *svc in [peripheral services])
     {
         if ([[svc UUID] isEqual:[BTManager Custom_Service_UUID]])
         {
             [peripheral discoverCharacteristics:@[[BTManager Read_Characteristic_UUID], [BTManager Write_Characteristic_UUID], [BTManager Notify_Characteristic_UUID], [BTManager Indicate_Characteristic_UUID]] forService:svc];
         }
+        else
+        {
+            NSLog(@"[BLE-DEBUG] Service Mismatch. Expected: %@", [BTManager Custom_Service_UUID]);
+        }
     }
 }
 
+// ✅ 發現 Characteristics
 - (void)peripheral:(CBPeripheral *)peripheral didDiscoverCharacteristicsForService:(CBService *)service error:(NSError *)error
 {
+    if (error)
+    {
+        NSLog(@"[BLE-DEBUG] didDiscoverCharacteristics Error: %@", error);
+        return;
+    }
+    
+    NSLog(@"[BLE-DEBUG] Service %@ has %lu characteristics", [service UUID], (unsigned long)[[service characteristics] count]);
+    
     for (CBCharacteristic *ch in [service characteristics])
     {
         _charCache[[ch UUID]] = ch;
@@ -367,7 +400,12 @@
     
     if (self.onReady)
     {
+        NSLog(@"[BLE-DEBUG] Calling onReady block!");
         self.onReady();  // 服務/特徵就緒（含已啟用 Notify）
+    }
+    else
+    {
+        NSLog(@"[BLE-DEBUG] Ready, but onReady block is nil?");
     }
 }
 

@@ -12,18 +12,26 @@
 /// Brook 小按鈕用的藍綠色 #00C3D0
 + (UIColor *)brookCyanColor
 {
-    return [UIColor colorWithRed:0.0/255.0 green:195.0/255.0 blue:208.0/255.0 alpha:1.0];
+    UIColor *color = [UIColor colorNamed:@"small_green_button_label_color"];
+    
+    if (!color)
+    {
+        NSLog(@"⚠️ Warning: Color 'small_green_button_label_color' not found in Assets, using fallback.");
+        return [UIColor colorWithRed:0.0/255.0 green:195.0/255.0 blue:208.0/255.0 alpha:1.0];
+    }
+    return color;
 }
 
-+ (UIImage *)imageWithColor:(UIColor *)color
++ (UIImage *)imageWithColor:(UIColor *)aColor
 {
     CGRect rect = CGRectMake(0, 0, 1, 1);
-    UIGraphicsBeginImageContextWithOptions(rect.size, NO, 0);
-    [color setFill];
-    UIRectFill(rect);
-    UIImage *img = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsBeginImageContext(rect.size);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    CGContextSetFillColorWithColor(context, [aColor CGColor]);
+    CGContextFillRect(context, rect);
+    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
-    return img;
+    return image;
 }
 
 /// 實心膠囊按鈕（像 StartUpViewController 的 Re-search / GotoAccount）
@@ -36,7 +44,7 @@
     [aButton setBackgroundColor:[self brookCyanColor]];
     
     // 膠囊圓角：高度的一半
-    [[aButton layer] setCornerRadius:CGRectGetHeight([aButton bounds]) / 2.0];
+    // [[aButton layer] setCornerRadius:CGRectGetHeight([aButton bounds]) / 2.0];
     [[aButton layer] setMasksToBounds:YES];
     
     // 文字樣式
@@ -61,7 +69,7 @@
     [aButton setBackgroundColor:[UIColor whiteColor]];
     
     // 膠囊圓角：高度的一半
-    [[aButton layer] setCornerRadius:CGRectGetHeight([aButton bounds]) / 2.0];
+    // [[aButton layer] setCornerRadius:CGRectGetHeight([aButton bounds]) / 2.0];
     [[aButton layer] setMasksToBounds:YES];
     
     // 邊框

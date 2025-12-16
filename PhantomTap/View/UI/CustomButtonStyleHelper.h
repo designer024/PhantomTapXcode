@@ -15,6 +15,8 @@ NS_ASSUME_NONNULL_BEGIN
 /// Brook 小按鈕用的藍綠色 #00C3D0
 + (UIColor *)brookCyanColor;
 
++ (UIImage *)imageWithColor:(UIColor *)aColor;
+
 /// 實心膠囊按鈕（像 StartUpViewController 的 Re-search / GotoAccount）
 + (void)applyFilledSmallButtonStyleTo:(UIButton *)aButton;
 

@@ -13,6 +13,7 @@
 @interface MainViewController : UIViewController <FloatingSidebarActions, UIImagePickerControllerDelegate, UINavigationControllerDelegate, PHPickerViewControllerDelegate>
 
 @property (weak, nonatomic) IBOutlet UIView *contentView;
+// @property (weak, nonatomic) IBOutlet UIView *phantomViewContainer;
 @property (weak, nonatomic) IBOutlet UIImageView *imageView;
 
 @property (nonatomic, strong) NSMutableArray<NSURL *> *jsonFileURLs;

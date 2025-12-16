@@ -36,7 +36,7 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     
-    [self initUi];
+    // [self initUi];
     
     self -> _deviceFound = NO;
     [self applyState:StartupStateSearching maybeWithErrorMessage:@""];
@@ -135,6 +135,40 @@
 /// Retry：回到 Searching，清掉上一輪結果，再掃一次
 - (IBAction)onTapRetry:(id)aSender
 {
+    [self onRetry];
+}
+
+- (IBAction)onTapGotoAccountPage:(id)aSender
+{
+    [self onGotoAccountPage];
+}
+
+- (IBAction)onTapSkip:(id)aSender
+{
+    [self onSkip];
+}
+
+
+#pragma mark - Button Actions
+
+- (void)onGotoAccountPage
+{
+    if (!_foundPeripheral)
+    {
+        NSLog(@"[Error] foundPeripheral is null.");
+        return;
+    }
+    
+    [btManager connectTo:_foundPeripheral];
+    
+    UIStoryboard *sb = [self storyboard];
+    UIViewController *mainViewController = [sb instantiateViewControllerWithIdentifier:@"SignInViewController"];
+    [mainViewController setModalPresentationStyle:UIModalPresentationFullScreen];
+    [self presentViewController:mainViewController animated:YES completion:nil];
+}
+
+- (void)onRetry
+{
     self -> _deviceFound = NO;
     _foundPeripheral = nil;
     [self applyState:StartupStateSearching maybeWithErrorMessage:@""];
@@ -152,23 +186,7 @@
     });
 }
 
-- (IBAction)onTapGotoAccountPage:(id)aSender
-{
-    if (!_foundPeripheral)
-    {
-        NSLog(@"[Error] foundPeripheral is null.");
-        return;
-    }
-    
-    [btManager connectTo:_foundPeripheral];
-    
-    UIStoryboard *sb = [self storyboard];
-    UIViewController *mainViewController = [sb instantiateViewControllerWithIdentifier:@"SignInViewController"];
-    [mainViewController setModalPresentationStyle:UIModalPresentationFullScreen];
-    [self presentViewController:mainViewController animated:YES completion:nil];
-}
-
-- (IBAction)onTapSkip:(id)aSender
+- (void)onSkip
 {
     _foundPeripheral = nil;
     
@@ -179,14 +197,77 @@
 }
 
 
-
-
-
 //---------------------------------------------
 //--------------- 小幫手 -----------------------
 //---------------------------------------------
 - (void)applyState:(StartupState)aState maybeWithErrorMessage:(NSString *)aLocalizedKey
 {
+    [self -> _searchingLayout setHidden:YES];
+    [self -> _noDeviceLayout setHidden:YES];
+    [self -> _deviceFoundLayout setHidden:YES];
+    
+    switch (aState)
+    {
+        case StartupStateSearching:
+        {
+            [self -> _searchingLayout setHidden:NO];
+        }
+            break;
+            
+        case StartupStateNoDevice:
+        {
+            CustomPopupDialog *popup = [CustomPopupDialog showInView:[self view] style:CustomPopupDialogStyleDoubleButton title:NSLocalizedString(@"cannot_fine_your_device", nil) message:NSLocalizedString(aLocalizedKey, nil) positiveButtonLabel:NSLocalizedString(@"research", nil) negativeButtonLabel:NSLocalizedString(@"skip", nil) onPositive:nil onNegative:nil];
+            
+            __weak typeof(self) weakSelf = self;
+            __weak CustomPopupDialog *weakPopup = popup;
+            
+            popup.onPositive = ^{
+                [weakPopup dismiss];
+                
+                __strong typeof(weakSelf) strongSelf = weakSelf;
+                if (!strongSelf) return;
+                
+                [strongSelf onRetry];
+                
+                NSLog(@"[MainVC] research.");
+            };
+            
+            popup.onNegative = ^{
+                [weakPopup dismiss];
+                
+                __strong typeof(weakSelf) strongSelf = weakSelf;
+                if (!strongSelf) return;
+                
+                [strongSelf onSkip];
+                
+                NSLog(@"[MainVC] skip.");
+            };
+        }
+            break;
+            
+        case StartupStateDeviceFound:
+        {
+            CustomPopupDialog *popup = [CustomPopupDialog showInView:[self view] style:CustomPopupDialogStyleSingleButton title:NSLocalizedString(@"device_found", nil) message:NSLocalizedString(aLocalizedKey, nil) positiveButtonLabel:NSLocalizedString(@"ok", nil) negativeButtonLabel:nil onPositive:nil onNegative:nil];
+            
+            __weak typeof(self) weakSelf = self;
+            __weak CustomPopupDialog *weakPopup = popup;
+            
+            popup.onPositive = ^{
+                [weakPopup dismiss];
+                
+                __strong typeof(weakSelf) strongSelf = weakSelf;
+                if (!strongSelf) return;
+                
+                [strongSelf onGotoAccountPage];
+                
+                NSLog(@"[MainVC] research.");
+            };
+        }
+            
+            break;
+    }
+    
+    /*
     switch (aState)
     {
         case StartupStateSearching:
@@ -208,6 +289,7 @@
             [self -> _deviceFoundLayout setHidden:NO];
             break;
     }
+    */
 }
 
 @end

@@ -28,17 +28,6 @@ static const NSInteger kDragButtonTag = 9999;
     [btn setImage:img forState:UIControlStateNormal];
     [btn setTintColor:[UIColor clearColor]];
     
-    /*
-    if (@available(iOS 15.0, *))
-    {
-        
-    }
-    else
-    {
-        [btn setContentEdgeInsets:UIEdgeInsetsMake(6, 6, 6, 6)];
-    }
-    */
-    
     UIButtonConfiguration *btnConfig = [UIButtonConfiguration filledButtonConfiguration];
     [btnConfig setContentInsets:NSDirectionalEdgeInsetsMake(5, 5, 5, 5)];
     // [btnConfig setContentInsets:NSDirectionalEdgeInsetsZero];
@@ -51,7 +40,7 @@ static const NSInteger kDragButtonTag = 9999;
     [btn setConfiguration:btnConfig];
     
     [btn setTranslatesAutoresizingMaskIntoConstraints:NO];
-    [[[btn heightAnchor] constraintEqualToConstant:55] setActive:YES];
+    [[[btn heightAnchor] constraintEqualToConstant:40] setActive:YES];
     
     NSLayoutConstraint *wLE = [[btn widthAnchor] constraintLessThanOrEqualToConstant:55];
     [wLE setActive:YES];
@@ -80,16 +69,16 @@ static const NSInteger kDragButtonTag = 9999;
 {
     UIStackView *stackView = [[UIStackView alloc] init];
     [stackView setAxis:UILayoutConstraintAxisVertical];
-    [stackView setSpacing:8];
+    [stackView setSpacing:2];
     [stackView setAlignment:UIStackViewAlignmentCenter];
     [stackView setTranslatesAutoresizingMaskIntoConstraints:NO];
     [aHost addSubview:stackView];
     
     [NSLayoutConstraint activateConstraints:@[
-        [[stackView topAnchor] constraintEqualToAnchor:[aHost topAnchor] constant:8],
-        [[stackView leadingAnchor] constraintEqualToAnchor:[aHost leadingAnchor] constant:8],
-        [[stackView trailingAnchor] constraintEqualToAnchor:[aHost trailingAnchor] constant:-8],
-        [[stackView bottomAnchor] constraintEqualToAnchor:[aHost bottomAnchor] constant:-8],
+        [[stackView topAnchor] constraintEqualToAnchor:[aHost topAnchor] constant:2],
+        [[stackView leadingAnchor] constraintEqualToAnchor:[aHost leadingAnchor] constant:2],
+        [[stackView trailingAnchor] constraintEqualToAnchor:[aHost trailingAnchor] constant:-2],
+        [[stackView bottomAnchor] constraintEqualToAnchor:[aHost bottomAnchor] constant:-2],
     ]];
     
     
@@ -104,11 +93,11 @@ static const NSInteger kDragButtonTag = 9999;
     
     UIButton *drag = [self makeIconButton:@"icon_drag" target:nil action:NULL];
     [drag setTag:kDragButtonTag];
-    UIButton *pickPhoto = [self makeIconButton:@"icon_photo" target:aTarget action:@selector(onTapPickPhoto)];    
+    // UIButton *pickPhoto = [self makeIconButton:@"icon_photo" target:aTarget action:@selector(onTapPickPhoto)];
     UIButton *expand = [self makeIconButton:@"icon_expand" target:aTarget action:@selector(toggleSidebar)];
     
     [stackView addArrangedSubview:drag];
-    [stackView addArrangedSubview:pickPhoto];
+    // [stackView addArrangedSubview:pickPhoto];
     [stackView addArrangedSubview:expand];
     
     return bar;
@@ -120,7 +109,7 @@ static const NSInteger kDragButtonTag = 9999;
     
     UIStackView *mainStackView = [[UIStackView alloc] init];
     [mainStackView setAxis:UILayoutConstraintAxisVertical];
-    [mainStackView setSpacing:8];
+    [mainStackView setSpacing:2];
     [mainStackView setAlignment:UIStackViewAlignmentCenter];
     [mainStackView setTranslatesAutoresizingMaskIntoConstraints:NO];
     [bar addSubview:mainStackView];
@@ -141,15 +130,15 @@ static const NSInteger kDragButtonTag = 9999;
     
     UIStackView *buttonStackView = [[UIStackView alloc] init];
     [buttonStackView setAxis:UILayoutConstraintAxisVertical];
-    [buttonStackView setSpacing:8];
+    [buttonStackView setSpacing:2];
     [buttonStackView setAlignment:UIStackViewAlignmentCenter];
     [buttonStackView setTranslatesAutoresizingMaskIntoConstraints:NO];
     [containerView addSubview:buttonStackView];
     
-    NSLayoutConstraint *mainTop = [[mainStackView topAnchor] constraintEqualToAnchor:[bar topAnchor] constant:8];
-    NSLayoutConstraint *mainLeading = [[mainStackView leadingAnchor] constraintEqualToAnchor:[bar leadingAnchor] constant:8];
-    NSLayoutConstraint *mainTrailing = [[mainStackView trailingAnchor] constraintEqualToAnchor:[bar trailingAnchor] constant:-8];
-    NSLayoutConstraint *mainBottom = [[mainStackView bottomAnchor] constraintEqualToAnchor:[bar bottomAnchor] constant:-8];
+    NSLayoutConstraint *mainTop = [[mainStackView topAnchor] constraintEqualToAnchor:[bar topAnchor] constant:2];
+    NSLayoutConstraint *mainLeading = [[mainStackView leadingAnchor] constraintEqualToAnchor:[bar leadingAnchor] constant:2];
+    NSLayoutConstraint *mainTrailing = [[mainStackView trailingAnchor] constraintEqualToAnchor:[bar trailingAnchor] constant:-2];
+    NSLayoutConstraint *mainBottom = [[mainStackView bottomAnchor] constraintEqualToAnchor:[bar bottomAnchor] constant:-2];
     
     NSLayoutConstraint *scrollWidth = [[scrollView widthAnchor] constraintEqualToAnchor:[mainStackView widthAnchor]];
     
@@ -178,6 +167,7 @@ static const NSInteger kDragButtonTag = 9999;
     
     // ✅【關鍵修正】只加入功能按鈕
     UIButton *add = [self makeIconButton:@"add_donut" target:aTarget action:@selector(onTapAddPhantomTap)];
+    UIButton *pickPhoto = [self makeIconButton:@"icon_photo" target:aTarget action:@selector(onTapPickPhoto)];
     UIButton *save = [self makeIconButton:@"save_config_to_json" target:aTarget action:@selector(onTapSave)];
     UIButton *upload = [self makeIconButton:@"load_from_json" target:aTarget action:@selector(onTapUpload)];
     UIButton *clear = [self makeIconButton:@"icon_clear" target:aTarget action:@selector(onTapClear)];
@@ -186,6 +176,7 @@ static const NSInteger kDragButtonTag = 9999;
     UIButton *collapse= [self makeIconButton:@"icon_collapse" target:aTarget action:@selector(toggleSidebar)];
 
     [buttonStackView addArrangedSubview:add];
+    [buttonStackView addArrangedSubview:pickPhoto];
     [buttonStackView addArrangedSubview:save];
     [buttonStackView addArrangedSubview:upload];
     [buttonStackView addArrangedSubview:clear];
@@ -195,65 +186,5 @@ static const NSInteger kDragButtonTag = 9999;
     
     return bar;
 }
-
-// 原來的 expandedBar
-//+ (UIView *)expandedBarWithTarget:(id<FloatingSidebarActions>)aTarget
-//{
-//    UIView *bar = [self baseBar];
-//    
-//    UIScrollView *scrollView = [[UIScrollView alloc] init];
-//    [scrollView setTranslatesAutoresizingMaskIntoConstraints:NO];
-//    [bar addSubview:scrollView];
-//    
-//    NSLayoutConstraint *scrollTop = [[scrollView topAnchor] constraintEqualToAnchor:[bar topAnchor]];
-//    NSLayoutConstraint *scrollLeading = [[scrollView leadingAnchor] constraintEqualToAnchor:[bar leadingAnchor]];
-//    NSLayoutConstraint *scrollTrailing = [[scrollView trailingAnchor] constraintEqualToAnchor:[bar trailingAnchor]];
-//    NSLayoutConstraint *scrollBottom = [[scrollView bottomAnchor] constraintEqualToAnchor:[bar bottomAnchor]];
-//    
-//    UIView *containerView = [[UIView alloc] init];
-//    [containerView setTranslatesAutoresizingMaskIntoConstraints:NO];
-//    [scrollView addSubview:containerView];
-//    
-//    UILayoutGuide *contentGuide = [scrollView contentLayoutGuide];
-//    UILayoutGuide *frameGuide = [scrollView frameLayoutGuide];
-//    
-//    NSLayoutConstraint *containerTop = [[containerView topAnchor] constraintEqualToAnchor:[contentGuide topAnchor]];
-//    NSLayoutConstraint *containerLeading = [[containerView leadingAnchor] constraintEqualToAnchor:[contentGuide leadingAnchor]];
-//    NSLayoutConstraint *containerTrailing = [[containerView trailingAnchor] constraintEqualToAnchor:[contentGuide trailingAnchor]];
-//    NSLayoutConstraint *containerBottom = [[containerView bottomAnchor] constraintEqualToAnchor:[contentGuide bottomAnchor]];
-//    NSLayoutConstraint *containerWidth = [[containerView widthAnchor] constraintEqualToAnchor:[frameGuide widthAnchor]];
-//    
-//    NSLayoutConstraint *heightConstratint = [[bar heightAnchor] constraintEqualToAnchor:[containerView heightAnchor]];
-//    [heightConstratint setPriority:UILayoutPriorityDefaultHigh];
-//    
-//    [NSLayoutConstraint activateConstraints:@[
-//        scrollTop, scrollLeading, scrollTrailing, scrollBottom,
-//        containerTop, containerBottom, containerLeading, containerTrailing, containerWidth,
-//        heightConstratint
-//    ]];
-//            
-//    UIStackView *stackView = [self makeStackInto:containerView];
-//    
-//    UIButton *drag    = [self makeIconButton:@"icon_drag" target:nil action:NULL];
-//    [drag setTag:kDragButtonTag];
-//    UIButton *add    = [self makeIconButton:@"icon_donut" target:aTarget action:@selector(onTapAddPhantomTap)];
-//    UIButton *save    = [self makeIconButton:@"icon_save" target:aTarget action:@selector(onTapSave)];
-//    UIButton *upload    = [self makeIconButton:@"icon_upload" target:aTarget action:@selector(onTapUpload)];
-//    UIButton *clear   = [self makeIconButton:@"icon_clear" target:aTarget action:@selector(onTapClear)];
-//    UIButton *writeToKeyboard   = [self makeIconButton:@"icon_write_to_keyboard" target:aTarget action:@selector(onWriteToKeyboard)];
-//    UIButton *collapse= [self makeIconButton:@"icon_collapse" target:aTarget action:@selector(toggleSidebar)];
-//
-//    [stackView addArrangedSubview:drag];
-//    [stackView addArrangedSubview:add];
-//    [stackView addArrangedSubview:save];
-//    [stackView addArrangedSubview:upload];
-//    [stackView addArrangedSubview:clear];
-//    [stackView addArrangedSubview:writeToKeyboard];
-//    [stackView addArrangedSubview:collapse];
-//    
-//    return bar;
-//}
-
-
 
 @end

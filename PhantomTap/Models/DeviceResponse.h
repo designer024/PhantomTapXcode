@@ -13,7 +13,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 /// 對應 Kotlin: sealed interface DeviceResponse { MacroContent, MacroResult, Error }
-typedef NS_ENUM(NSInteger, DeviceResponseKind) {
+typedef NS_ENUM(NSInteger, DeviceResponseKind)
+{
     DeviceResponseKindMacroKeyMapping = 0,     // 讀回指定按鍵內容 (ID=0x03, CMD=0x02)
     DeviceResponseKindMacroContent,         // 之後用
     DeviceResponseKindMacroResult,      // (ID=0x02, CMD=0x03)

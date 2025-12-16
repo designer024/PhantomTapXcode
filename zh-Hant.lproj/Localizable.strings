@@ -9,8 +9,6 @@
 
 "must_be_enabled_to_start_scanning" = "必須開啟藍牙才能掃描";
 
-"confirm_phantom_tap_is_on_and_nearby" = "請確認您的 PhantomTap 鍵盤已開啟並在附近";
-
 "email" = "電子郵件";
 
 "password" = "密碼";
@@ -65,4 +63,21 @@
 
 "delete" = "刪除";
 
+"clear" = "清除";
+
+"confirm_clear" = "確認清除";
+
+"confirm_clear_message" = "將會移除畫面上所有標記的點位與設定，\n確定要清除嗎？";
+
+"cannot_fine_your_device" = "找不到您的裝置";
+
+"confirm_phantom_tap_is_on_and_nearby" = "請確認您的 PhantomTap 鍵盤已開啟並在附近";
+
+"research" = "重新搜尋";
+
+"skip" = "略過";
+
+"device_found" = "已找到您的設備！";
+
+"connected_calibrating_the_screen" = "已連線，正在校正螢幕...";
 

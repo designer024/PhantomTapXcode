@@ -367,7 +367,7 @@ static NSString * const kAPIClientErrorDomain = @"APIClientErrorDomain";
         }
         
         NSInteger code = [httpResp statusCode];
-        if (code >= 200 & code < 300)
+        if (code >= 200 && code < 300)
         {
             if (aCompletion) aCompletion(json, nil);
         }
