@@ -20,17 +20,21 @@
 
 "continue_as_guest" = "Sign-in as guest.";
 
-"signing_in" = "Signing in...";
+"signing_in" = "Signing in";
 
 "line_signing_in" = "LINE signing in...";
 
-"sign_in_success" = "Sign in successfully";
+"sign_in_success" = "Sign-in successfully";
 
-"sign_in_failed" = "Sign in failed";
+"sign_in_failed" = "Sign-in failed";
 
 "try_again_later" = "Please try again later.";
 
 "contacting_server" = "Contacting server...";
+
+"email_or_password_is_empty" = "Email or password is empty.";
+
+"password_must_be_at_least_8" = "Password must be at least 8 characters.";
 
 "notice" = "Notice";
 
@@ -79,3 +83,5 @@
 "device_found" = "Device found!";
 
 "connected_calibrating_the_screen" = "Connected. Calibrating the screen…";
+
+

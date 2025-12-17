@@ -21,7 +21,7 @@
 
 "continue_as_guest" = "以訪客身份繼續";
 
-"signing_in" = "登入中...";
+"signing_in" = "登入中";
 
 "line_signing_in" = "LINE 登入中...";
 
@@ -32,6 +32,11 @@
 "try_again_later" = "請再試一次";
 
 "contacting_server" = "與伺服器連線中...";
+
+"email_or_password_is_empty" = "Email或密碼為空";
+
+"password_must_be_at_least_8" = "密碼長度不足 8 碼";
+
 
 "notice" = "提示";
 

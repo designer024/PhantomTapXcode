@@ -105,31 +105,73 @@ typedef NS_ENUM(NSInteger, ThirdPartyProvider)
     
     if ([email length] == 0 || [password length] == 0)
     {
-        NSLog(@"❌ Email 或密碼為空, %lu, %lu", [email length], [password length]);
+        NSLog(@"❌ Email或密碼為空, %lu, %lu", [email length], [password length]);
+        [self showError:NSLocalizedString(@"email_or_password_is_empty", nil)];
         return;
     }
     
     if ([password length] < 8)
     {
-        NSLog(@"❌ 密碼長度至少 8, %lu", [password length]);
+        NSLog(@"❌ 密碼長度不足 8 碼, %lu", [password length]);
+        [self showError:NSLocalizedString(@"password_must_be_at_least_8", nil)];
         return;
     }
     
     NSLog(@"🔐 嘗試登入：%@", email);
+    [self showLoadingPopupWithTitle:NSLocalizedString(@"signing_in", nil) message:@""];
+    
+    NSTimeInterval startTime = [[NSDate date] timeIntervalSince1970];
+    NSTimeInterval minDuration = 1.0; // 設定最小停留時間為 1 秒
     
     __weak typeof(self) weakSelf = self;
     [[APIClient sharedClient] signInWithEmail:email password:password completion:^(NSString * _Nullable aAccessToken, NSError * _Nullable aError) {
-        if (aError)
-        {
-            NSLog(@"❌ 登入失敗: %@", [aError localizedDescription]);
-        }
-        else
-        {
-            NSLog(@"✅ 登入成功，token = %@", aAccessToken);
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [weakSelf gotoMainPage];
-            });
-        }
+        NSTimeInterval now = [[NSDate date] timeIntervalSince1970];
+        NSTimeInterval elapsed = now - startTime;
+        NSTimeInterval delay = (elapsed < minDuration) ? (minDuration - elapsed) : 0.0;
+        
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            __strong typeof(weakSelf) strongSelf = weakSelf;
+            if (!strongSelf) return;
+            
+            if (aError)
+            {
+                NSLog(@"❌ 登入失敗: %@", [aError localizedDescription]);
+                if (strongSelf -> _statusPopup)
+                {
+                    NSString *errorMsg = [aError localizedDescription] ?: @"帳號或密碼錯誤";
+                    [strongSelf -> _statusPopup updateToStyle:CustomPopupDialogStyleSingleButton title:NSLocalizedString(@"sign_in_failed", nil) message:errorMsg positiveButtonLabel:NSLocalizedString(@"ok", nil) negativeButtonLabel:nil onPositive:^{
+                        [strongSelf -> _statusPopup dismiss];
+                        strongSelf -> _statusPopup = nil;
+                    } onNegative:nil];
+                }
+                else
+                {
+                    [strongSelf showError:[aError localizedDescription]];
+                }
+            }
+            else
+            {
+                NSLog(@"✅ 登入成功，token = %@", aAccessToken);
+                
+                if (strongSelf -> _statusPopup)
+                {
+                    [strongSelf -> _statusPopup updateToStyle:CustomPopupDialogStyleSingleButton title:NSLocalizedString(@"sign_in_success", nil) message:nil positiveButtonLabel:NSLocalizedString(@"ok", nil) negativeButtonLabel:nil onPositive:^{
+                        [strongSelf -> _statusPopup dismiss];
+                        strongSelf -> _statusPopup = nil;
+                        [strongSelf gotoMainPage];
+                    } onNegative:nil];
+                }
+                else
+                {
+                    [weakSelf gotoMainPage];
+                }
+                /*
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [weakSelf gotoMainPage];
+                });
+                */
+            }
+        });
     }];
 }
 
@@ -325,28 +367,36 @@ typedef NS_ENUM(NSInteger, ThirdPartyProvider)
             strongSelf -> _statusPopup = nil;
         } onNegative:nil];
     }
-    
-    
-
-    
-    
-    
-    /*
-    NSLog(@"登入失敗: %@", aError);
-    // 檢查錯誤是否為使用者取消
-    if ([[aError domain] isEqualToString:ASAuthorizationErrorDomain] && [aError code] == ASAuthorizationErrorCanceled)
-    {
-        NSLog(@"使用者取消登入");
-        return;
-    }
-    NSLog(@"登入失敗:\n%@", [aError localizedDescription]);
-    */
 }
 
 
 #pragma mark - SignInManagerDelegate Helper
 - (void)showError:(NSString *)aMessage
 {
+    __weak typeof(self) weakSelf = self;
+    
+    void (^onDismissBlock)(void) = ^{
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (strongSelf -> _statusPopup)
+        {
+            [strongSelf -> _statusPopup dismiss];
+            strongSelf -> _statusPopup = nil;
+        }
+    };
+    
+    NSString *title = NSLocalizedString(@"sign_in_failed", nil);
+    NSString *btnLabel = NSLocalizedString(@"ok", nil);
+    
+    if (self -> _statusPopup)
+    {
+        [self -> _statusPopup updateToStyle:CustomPopupDialogStyleSingleButton title:title message:aMessage positiveButtonLabel:btnLabel negativeButtonLabel:nil onPositive:onDismissBlock onNegative:nil];
+    }
+    else
+    {
+        self -> _statusPopup = [CustomPopupDialog showInView:[self view] style:CustomPopupDialogStyleSingleButton title:title message:aMessage positiveButtonLabel:btnLabel negativeButtonLabel:nil onPositive:onDismissBlock onNegative:nil];
+    }
+    
+    /*
     UIAlertController *alert =
     [UIAlertController alertControllerWithTitle:@"登入失敗"
                                         message:aMessage
@@ -356,6 +406,7 @@ typedef NS_ENUM(NSInteger, ThirdPartyProvider)
                                               style:UIAlertActionStyleDefault
                                             handler:nil]];
     [self presentViewController:alert animated:YES completion:nil];
+    */
 }
 - (void)gotoMainPage
 {

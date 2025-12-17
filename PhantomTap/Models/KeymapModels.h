@@ -45,6 +45,8 @@ typedef NS_ENUM(NSInteger, KeymapType)
 
 + (instancetype)tapWitId:(NSInteger)aActionId orientation:(NSString *)aOrientation screenW:(NSInteger)aScreenW screenH:(NSInteger)aScreenH posX:(CGFloat)aPosX posY:(CGFloat)aPosY keyCode:(NSString *)aKeyCode pressEvent:(BOOL)aPressEvent;
 
+
+
 - (instancetype)init NS_UNAVAILABLE;
 + (instancetype)new NS_UNAVAILABLE;
 

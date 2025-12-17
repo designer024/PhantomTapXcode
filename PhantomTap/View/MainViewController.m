@@ -12,6 +12,7 @@
 #import "DeviceResponse.h"
 #import "BTManager.h"
 #import "HidKeyCodeMap.h"
+#import "KeymapModels.h"
 #import "PhantomTapView.h"
 #import "ThirdPartySignInManager.h"
 #import "GlobalConfig.h"
@@ -604,26 +605,42 @@
 
 - (void)processCommandQueue
 {
-    if ([_commandQueue count] == 0)
+    if ([_commandQueue count] == 0 || _isWritingBle)
     {
-        NSLog(@"[QUEUE] no packets to send.");
-        _isWritingBle = NO;
+        if ([_commandQueue count] == 0 && !_isWritingBle)
+        {
+            [self onAllCommandsSent];
+        }
         return;
     }
     
-    NSData *pkt = [_commandQueue firstObject];
+    NSData *packet = [_commandQueue firstObject];
     [_commandQueue removeObjectAtIndex:0];
     
-    NSLog(@"[QUEUE] send packet, remain=%lu, len=%lu", (unsigned long)[_commandQueue count], (unsigned long)[pkt length]);
-    
-    [[BTManager shared] write:pkt toService:[BTManager Custom_Service_UUID] characteristic:[BTManager Write_Characteristic_UUID] withResponse:NO];
-    
-    __weak typeof(self) wself = self;
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_MSEC)), dispatch_get_main_queue(), ^{
-        __strong typeof(wself) self = wself;
-        if (!self) return;
-        [self processCommandQueue];
-    });
+    if (packet)
+    {
+        _isWritingBle = YES;
+        
+        NSLog(@"[MainVC] 送封包(剩餘%lu): %@", (unsigned long)[_commandQueue count], [BTManager byteArrayToHexString:packet]);
+        
+        [[BTManager shared] write:packet toService:[BTManager Custom_Service_UUID] characteristic:[BTManager Write_Characteristic_UUID] withResponse:NO];
+        
+        // 延遲 500ms 避免塞爆
+        __weak typeof(self) wself = self;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_MSEC)), dispatch_get_main_queue(), ^{
+            __strong typeof(wself) self = wself;
+            if (!self) return;
+            
+            self -> _isWritingBle = NO;
+            [self processCommandQueue];
+        });
+    }
+}
+
+- (void)onAllCommandsSent
+{
+    NSLog(@"[MainVC] 所有指令已傳送完畢！");
+    [self showBottomToast:@"寫入完成"];
 }
 
 
@@ -1103,76 +1120,6 @@
                               NSLog(@"[MainVC] json picker canceled");
                           }];
 }
-/*
-- (void)showJsonFileMenuForURL:(NSURL *)aURL
-{
-    if (!aURL) return;
-
-    NSString *filename = aURL.lastPathComponent;
-
-    UIAlertController *sheet =
-    [UIAlertController alertControllerWithTitle:filename
-                                        message:NSLocalizedString(@"choose_action_for_keymap", nil) // ex: "要對這個設定檔做什麼？"
-                                 preferredStyle:UIAlertControllerStyleActionSheet];
-
-    __weak typeof(self) weakSelf = self;
-
-    // 載入
-    UIAlertAction *loadAction =
-    [UIAlertAction actionWithTitle:NSLocalizedString(@"load_keymap", nil)  // ex: "載入這個設定"
-                             style:UIAlertActionStyleDefault
-                           handler:^(UIAlertAction * _Nonnull action) {
-        NSLog(@"[Keymap] load %@", filename);
-        [weakSelf loadDataFromJsonAtURL:aURL];
-    }];
-    [sheet addAction:loadAction];
-
-    // 刪除
-    UIAlertAction *deleteAction =
-    [UIAlertAction actionWithTitle:NSLocalizedString(@"delete", nil)
-                             style:UIAlertActionStyleDestructive
-                           handler:^(UIAlertAction * _Nonnull action) {
-        NSLog(@"[Keymap] delete %@", filename);
-        NSError *err = nil;
-        BOOL ok = [[NSFileManager defaultManager] removeItemAtURL:aURL error:&err];
-        if (!ok || err) {
-            NSLog(@"[Keymap] delete error = %@", err);
-            UIAlertController *errAlert =
-            [UIAlertController alertControllerWithTitle:NSLocalizedString(@"notice", nil)
-                                                message:NSLocalizedString(@"try_again_later", nil)
-                                         preferredStyle:UIAlertControllerStyleAlert];
-            [errAlert addAction:[UIAlertAction actionWithTitle:NSLocalizedString(@"ok", nil)
-                                                        style:UIAlertActionStyleDefault
-                                                      handler:nil]];
-            [weakSelf presentViewController:errAlert animated:YES completion:nil];
-            return;
-        }
-
-        // 刪掉之後，重新打開列表給使用者看剩下的
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [weakSelf showJsonFilePicker];
-        });
-    }];
-    [sheet addAction:deleteAction];
-
-    UIAlertAction *cancel =
-    [UIAlertAction actionWithTitle:NSLocalizedString(@"cancel", nil)
-                             style:UIAlertActionStyleCancel
-                           handler:nil];
-    [sheet addAction:cancel];
-
-    UIPopoverPresentationController *pop = sheet.popoverPresentationController;
-    if (pop) {
-        pop.sourceView = self.view;
-        pop.sourceRect = CGRectMake(CGRectGetMidX(self.view.bounds),
-                                    CGRectGetMidY(self.view.bounds),
-                                    1, 1);
-        pop.permittedArrowDirections = 0;
-    }
-
-    [self presentViewController:sheet animated:YES completion:nil];
-}
-*/
 
 - (void)buildJsonFileRowsInStack:(UIStackView *)aStack inPopup:(CustomPopupDialog *)aPopup
 {
@@ -1515,7 +1462,137 @@
     NSLog(@"[WRITE] calibration pixels=%ldx%ld", (long)aWidth, (long)aHeight);
 }
 
+#pragma mark - Helper Function
 
+// 模擬 Android 的 data class copy()
+- (TapAction *)createTempActionFrom:(TapAction *)aOriginal isPress:(BOOL)aIsPress
+{
+    TapAction *newAction = [[TapAction alloc] initWithId:[aOriginal actionId] orientation:[aOriginal orientation] screenW:[aOriginal screenW] screenH:[aOriginal screenH] posX:[aOriginal posX] posY:[aOriginal posY] keyCode:[aOriginal keyCode] pressEvent:aIsPress];
+    
+    return newAction;
+}
+
+
+#pragma mark - For Testing Button
+
+- (IBAction)testSomething:(id)aSender
+{
+    [self onTapTestAButton];
+}
+
+#pragma mark - Macro Test Logic (Test A Button)
+
+- (void)onTapTestAButton
+{
+    if (!_commandQueue)
+    {
+        _commandQueue = [NSMutableArray array];
+    }
+    
+    if ([_phantomTapViewsList count] != 1)
+    {
+        NSLog(@"[MainVC] 現在在測試，只用一個PhantomTapView就好了.");
+        [self showBottomToast:@"只能用一個"];
+        return;
+    }
+    
+    if (![[BTManager shared] getConnected])
+    {
+        NSLog(@"尚未連線藍牙裝置");
+        [self showBottomToast:@"尚未連線藍牙裝置"];
+        return;
+    }
+    
+    PhantomTapView *viewToMap = [_phantomTapViewsList firstObject];
+    NSString *key = [[viewToMap action] keyCode];
+    
+    if (!key || [key length] == 0 || [key isEqualToString:@"null"])
+    {
+        NSLog(@"[MainVC] key is invalid: %@.", key);
+        [self showBottomToast:@"Key 無效，請先設定成 A"];
+        return;
+    }
+    
+    [self testingWritingShortClickMacroFromView:viewToMap];
+}
+- (void)testingWritingShortClickMacroFromView:(PhantomTapView *)aPhantomTapView
+{
+    TapAction *action = [aPhantomTapView action];
+    if (!action) return;
+    
+    NSInteger keyIndex = 44; // default A
+    NSNumber *idxNum = [HidKeyCodeMap keyIndexForLabel:[action keyCode]];
+    if (idxNum != nil)
+    {
+        keyIndex = [idxNum integerValue];
+    }
+    else
+    {
+        NSLog(@"[MainVC] Unknown keyCode=%@, fallback to A(44)", [action keyCode]);
+    }
+    
+    [_commandQueue removeAllObjects];
+    _isWritingBle = NO;
+    
+    TapAction *down = [self createTempActionFrom:action isPress:YES];
+    TapAction *up = [self createTempActionFrom:action isPress:NO];
+    
+    if (!down || !up)
+    {
+        [self showBottomToast:@"建立 Action 失敗，請檢查 Initializer"];
+        return;;
+    }
+    
+    NSArray *steps = @[down, up];
+    
+    NSData *writeMacroPacket = [BluetoothPacketBuilder buildWriteMacroContentPacketWithPacketIndex:1 actions:steps];
+    if (writeMacroPacket)
+    {
+        [_commandQueue addObject:writeMacroPacket];
+    }
+    
+    NSData *setTriggerKeyPacket = [BluetoothPacketBuilder buildSetMacroTriggerKeyPacket:keyIndex isContinuous:NO macroName:@"TEST_SHORT_CLICK"];
+    if (setTriggerKeyPacket)
+    {
+        [_commandQueue addObject:setTriggerKeyPacket];
+    }
+    
+    NSData *notifyCompletePacket = [BluetoothPacketBuilder buildNotifyMacroWriteCompletePacketWithKeyIndex:keyIndex totalActions:[steps count]];
+    if (notifyCompletePacket)
+    {
+        [_commandQueue addObject:notifyCompletePacket];
+    }
+    
+    if ([_commandQueue count] == 0)
+    {
+        NSLog(@"[MainVC] queue empty after build");
+        [self showBottomToast:@"沒有可送出的封包"];
+        return;
+    }
+    
+    NSLog(@"[MainVC] testingWritingShortClickMacroFromView: queue size=%lu", (unsigned long)[_commandQueue count]);
+    
+    [self showBottomToast:@"寫入按鍵設定中..."];
+    [self processCommandQueue];
+}
+
+
+#pragma mark - BLE Battry Test
+
+- (void)testBattery
+{
+    if (![[BTManager shared] getConnected])
+    {
+        NSLog(@"尚未連線藍牙裝置");
+        [self showBottomToast:@"尚未連線藍牙裝置"];
+        return;
+    }
+    
+    // once
+    // [[BTManager shared] readBatteryLevelOnce];
+    // can keep notified
+    [[BTManager shared] setBatteryNotification:YES];
+}
 
 
 #pragma mark - API Test

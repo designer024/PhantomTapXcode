@@ -25,36 +25,35 @@
 
 #pragma mark - Public
 
-+ (instancetype)showInView:(UIView *)parentView
-                     title:(NSString *)title
-                      urls:(NSArray<NSURL *> *)fileURLs
-                  onSelect:(JsonFilePickerSelectHandler)onSelect
-                  onDelete:(JsonFilePickerDeleteHandler)onDelete
-                  onCancel:(JsonFilePickerCancelHandler)onCancel
++ (instancetype)showInView:(UIView *)aParentView
+                     title:(NSString *)aTitle
+                      urls:(NSArray<NSURL *> *)aFileURLs
+                  onSelect:(JsonFilePickerSelectHandler)aOnSelect
+                  onDelete:(JsonFilePickerDeleteHandler)aOnDelete
+                  onCancel:(JsonFilePickerCancelHandler)aOnCancel
 {
-    JsonFilePickerView *view = [[JsonFilePickerView alloc] initWithFrame:parentView.bounds];
-    [view setTranslatesAutoresizingMaskIntoConstraints:NO];
-    view.onSelect = [onSelect copy];
-    view.onDelete = [onDelete copy];
-    view.onCancel = [onCancel copy];
+    JsonFilePickerView *jsonFilePickerView = [[JsonFilePickerView alloc] initWithFrame:aParentView.bounds];
+    [jsonFilePickerView setTranslatesAutoresizingMaskIntoConstraints:NO];
+    [jsonFilePickerView setOnSelect:[aOnSelect copy]];
+    [jsonFilePickerView setOnDelete:[aOnDelete copy]];
+    [jsonFilePickerView setOnCancel:[aOnCancel copy]];    
     
+    [jsonFilePickerView configureWithTitle:aTitle urls:aFileURLs];
     
-    [view configureWithTitle:title urls:fileURLs];
-    
-    [parentView addSubview:view];
+    [aParentView addSubview:jsonFilePickerView];
     [NSLayoutConstraint activateConstraints:@[
-        [[view topAnchor] constraintEqualToAnchor:[parentView topAnchor]],
-        [[view bottomAnchor] constraintEqualToAnchor:[parentView bottomAnchor]],
-        [[view leadingAnchor] constraintEqualToAnchor:[parentView leadingAnchor]],
-        [[view trailingAnchor] constraintEqualToAnchor:[parentView trailingAnchor]],
+        [[jsonFilePickerView topAnchor] constraintEqualToAnchor:[aParentView topAnchor]],
+        [[jsonFilePickerView bottomAnchor] constraintEqualToAnchor:[aParentView bottomAnchor]],
+        [[jsonFilePickerView leadingAnchor] constraintEqualToAnchor:[aParentView leadingAnchor]],
+        [[jsonFilePickerView trailingAnchor] constraintEqualToAnchor:[aParentView trailingAnchor]],
     ]];
     
-    [view setAlpha:0.0];
+    [jsonFilePickerView setAlpha:0.0];
     [UIView animateWithDuration:0.2 animations:^{
-        [view setAlpha:1.0];
+        [jsonFilePickerView setAlpha:1.0];
     }];
     
-    return view;
+    return jsonFilePickerView;
 }
 
 - (void)dismiss
@@ -102,24 +101,24 @@
     // title
     _titleLabel = [[UILabel alloc] initWithFrame:CGRectZero];
     [_titleLabel setTranslatesAutoresizingMaskIntoConstraints:NO];
-    _titleLabel.font = [UIFont boldSystemFontOfSize:17.0];
-    _titleLabel.textColor = [UIColor blackColor];
-    _titleLabel.textAlignment = NSTextAlignmentLeft;
-    _titleLabel.numberOfLines = 0;
+    [_titleLabel setFont:[UIFont boldSystemFontOfSize:17.0]];
+    [_titleLabel setTextColor:[UIColor blackColor]];
+    [_titleLabel setTextAlignment:NSTextAlignmentLeft];
+    [_titleLabel setNumberOfLines:0];
     [_cardView addSubview:_titleLabel];
     
     // scroll + stack for rows
     _scrollView = [[UIScrollView alloc] initWithFrame:CGRectZero];
     [_scrollView setTranslatesAutoresizingMaskIntoConstraints:NO];
-    _scrollView.alwaysBounceVertical = YES;
+    [_scrollView setAlwaysBounceVertical:YES];
     [_cardView addSubview:_scrollView];
     
     _stackView = [[UIStackView alloc] initWithFrame:CGRectZero];
     [_stackView setTranslatesAutoresizingMaskIntoConstraints:NO];
-    _stackView.axis = UILayoutConstraintAxisVertical;
-    _stackView.alignment = UIStackViewAlignmentFill;
-    _stackView.distribution = UIStackViewDistributionFill;
-    _stackView.spacing = 0.0;
+    [_stackView setAxis:UILayoutConstraintAxisVertical];
+    [_stackView setAlignment:UIStackViewAlignmentFill];
+    [_stackView setDistribution:UIStackViewDistributionFill];
+    [_stackView setSpacing:0.0];
     [_scrollView addSubview:_stackView];
     
     // Cancel button
@@ -127,13 +126,10 @@
     [_cancelButton setTranslatesAutoresizingMaskIntoConstraints:NO];
     [_cancelButton setTitle:NSLocalizedString(@"cancel", nil) forState:UIControlStateNormal];
     [_cancelButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    _cancelButton.backgroundColor = [UIColor colorWithRed:0.0/255.0
-                                                   green:195.0/255.0
-                                                    blue:208.0/255.0
-                                                   alpha:1.0];
-    _cancelButton.titleLabel.font = [UIFont fontWithName:@"NotoSansTC-Black" size:16.0] ?: [UIFont boldSystemFontOfSize:16.0];
-    [_cancelButton layer].cornerRadius = 22.0;
-    [_cancelButton layer].masksToBounds = YES;
+    [_cancelButton setBackgroundColor:[UIColor colorWithRed:0.0/255.0 green:195.0/255.0 blue:208.0/255.0 alpha:1.0]];
+    [[_cancelButton titleLabel] setFont:[UIFont fontWithName:@"NotoSansTC-Black" size:16.0] ?: [UIFont boldSystemFontOfSize:16.0]];
+    [[_cancelButton layer] setCornerRadius:22.0];
+    [[_cancelButton layer] setMasksToBounds:YES];
     [_cancelButton addTarget:self action:@selector(onTapCancel:) forControlEvents:UIControlEventTouchUpInside];
     [_cardView addSubview:_cancelButton];
     
@@ -184,7 +180,7 @@
 
 - (void)configureWithTitle:(NSString *)title urls:(NSArray<NSURL *> *)fileURLs
 {
-    _titleLabel.text = title;
+    [_titleLabel setText:title];
     _mutableFileURLs = [fileURLs mutableCopy] ?: [NSMutableArray array];
     
     // 先清空 stack
@@ -195,12 +191,12 @@
     
     if (_mutableFileURLs.count == 0) {
         UILabel *empty = [[UILabel alloc] initWithFrame:CGRectZero];
-        empty.translatesAutoresizingMaskIntoConstraints = NO;
-        empty.text = NSLocalizedString(@"no_items_can_be_loaded", nil);
-        empty.font = [UIFont systemFontOfSize:14.0];
-        empty.textColor = [UIColor darkGrayColor];
-        empty.textAlignment = NSTextAlignmentCenter;
-        empty.numberOfLines = 0;
+        [empty setTranslatesAutoresizingMaskIntoConstraints:NO];
+        [empty setText:NSLocalizedString(@"no_items_can_be_loaded", nil)];
+        [empty setFont:[UIFont systemFontOfSize:14.0]];
+        [empty setTextColor:[UIColor darkGrayColor]];
+        [empty setTextAlignment:NSTextAlignmentCenter];
+        [empty setNumberOfLines:0];
         [_stackView addArrangedSubview:empty];
         return;
     }

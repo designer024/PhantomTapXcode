@@ -17,10 +17,4 @@ typedef NS_ENUM(NSInteger, StartupState)
 
 @interface StartUpViewController : UIViewController
 
-@property (weak, nonatomic) IBOutlet UIButton *retryButton;
-@property (weak, nonatomic) IBOutlet UIButton *skipButton;
-@property (weak, nonatomic) IBOutlet UIButton *goToAccountButton;
-
-
 @end
-

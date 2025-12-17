@@ -128,9 +128,9 @@ API_AVAILABLE(ios(13.0))
         }
         
         NSLog(@"🟢 LINE userID(sub) = %@", userIdentifier);
-        NSLog(@"🟢 LINE email      = %@", email);
-        NSLog(@"🟢 LINE name       = %@", fullName);
-        NSLog(@"🟢 LINE picture    = %@", picture);
+        NSLog(@"🟢 LINE email = %@", email);
+        NSLog(@"🟢 LINE name = %@", fullName);
+        NSLog(@"🟢 LINE picture = %@", picture);
         
         [[APIClient sharedClient] lineSignInWithEmail:email sub:userIdentifier name:fullName picture:picture completion:^(NSString * _Nullable aAccessToken, NSError * _Nullable aError) {
             if (aError)
@@ -247,8 +247,8 @@ API_AVAILABLE(ios(13.0))
     NSString *idToken = [[aUser idToken] tokenString];    // 目前只是往 delegate 傳，API 不需要它
     
     NSLog(@"🟢 Google userID(sub) = %@", sub);
-    NSLog(@"🟢 Google email      = %@", email);
-    NSLog(@"🟢 Google fullName   = %@", fullName);
+    NSLog(@"🟢 Google email = %@", email);
+    NSLog(@"🟢 Google fullName = %@", fullName);
     
     BOOL emailVerified = YES;
     

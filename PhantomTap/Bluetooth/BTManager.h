@@ -38,7 +38,6 @@ typedef void(^BTDataHandler) (NSData *aData);
 + (CBUUID *)Battery_Service_UUID;
 + (CBUUID *)Batter_Level_Characteristic_UUID;
 
-
 + (instancetype)shared;
 
 - (CBCentralManager *)getCentral;
@@ -54,6 +53,9 @@ typedef void(^BTDataHandler) (NSData *aData);
 
 - (void)readB201;
 - (void)readFromService:(CBUUID *)aService characteristic:(CBUUID *)aCharacteristic;
+
+- (void)readBatteryLevelOnce;
+- (void)setBatteryNotification:(BOOL)aEnabled;
 
 
 - (void)logCachedCharacteristics;

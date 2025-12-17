@@ -10,13 +10,12 @@ typedef void(^JsonFilePickerCancelHandler)(void);
 
 @interface JsonFilePickerView : UIView
 
-/// 建立並顯示在 parentView 之上
-+ (instancetype)showInView:(UIView *)parentView
-                     title:(NSString *)title
-                      urls:(NSArray<NSURL *> *)fileURLs
-                  onSelect:(nullable JsonFilePickerSelectHandler)onSelect
-                  onDelete:(nullable JsonFilePickerDeleteHandler)onDelete
-                  onCancel:(nullable JsonFilePickerCancelHandler)onCancel;
++ (instancetype)showInView:(UIView *)aParentView
+                     title:(NSString *)aTitle
+                      urls:(NSArray<NSURL *> *)aFileURLs
+                  onSelect:(JsonFilePickerSelectHandler)aOnSelect
+                  onDelete:(JsonFilePickerDeleteHandler)aOnDelete
+                  onCancel:(JsonFilePickerCancelHandler)aOnCancel;
 
 /// 關閉
 - (void)dismiss;

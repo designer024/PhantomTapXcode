@@ -69,10 +69,12 @@
     return [CBUUID UUIDWithString:@"0000B204-0000-1000-8000-00805F9B34FB"];
 }
 
+/// 180F
 + (CBUUID *)Battery_Service_UUID
 {
     return [CBUUID UUIDWithString:@"0000180F-0000-1000-8000-00805F9B34FB"];
 }
+/// 2A19
 + (CBUUID *)Batter_Level_Characteristic_UUID
 {
     return [CBUUID UUIDWithString:@"00002A19-0000-1000-8000-00805F9B34FB"];
@@ -202,6 +204,37 @@
 }
 
 
+- (void)readBatteryLevelOnce
+{
+    CBCharacteristic *c = _charCache[[BTManager Batter_Level_Characteristic_UUID]];
+    
+    if (c && _connectedPeripheral)
+    {
+        NSLog(@"[BTManager] ⚡️ readBatteryLevelOnce() -> readValue");
+        [_connectedPeripheral readValueForCharacteristic:c];
+    }
+    else
+    {
+        NSLog(@"[BTManager] ❌ 讀取電量失敗: 找不到特徵值 2A19 (可能未掃描到服務)");
+    }
+}
+
+- (void)setBatteryNotification:(BOOL)aEnabled
+{
+    CBCharacteristic *c = _charCache[[BTManager Batter_Level_Characteristic_UUID]];
+    
+    if (c && _connectedPeripheral)
+    {
+        NSLog(@"[BTManager] 🔔 enableBatteryLevelNotification(%@) -> setNotify", aEnabled ? @"true" : @"false");
+        [_connectedPeripheral setNotifyValue:aEnabled forCharacteristic:c];
+    }
+    else
+    {
+        NSLog(@"[BTManager] ❌ 設定通知失敗: 找不到特徵值 2A19");
+    }
+}
+
+
 - (void)logCachedCharacteristics
 {
     NSLog(@"[BLE] cached %lu chars:", (unsigned long)_charCache.count);
@@ -323,8 +356,10 @@
     }
     
     CBUUID *targetUUID = [BTManager Custom_Service_UUID];
-    NSLog(@"[BLE-DEBUG] Discovering services with UUID: %@", targetUUID);
-    [peripheral discoverServices:@[targetUUID]];
+    CBUUID *battryUUID = [BTManager Battery_Service_UUID];
+    NSLog(@"[BLE-DEBUG] Discovering services with UUID: %@, %@", targetUUID, battryUUID);
+    // [peripheral discoverServices:@[targetUUID]];
+    [peripheral discoverServices:nil];
 }
 
 // ❌ 連線失敗
@@ -366,10 +401,15 @@
     }
     
     for (CBService *svc in [peripheral services])
-    {
+    { 
         if ([[svc UUID] isEqual:[BTManager Custom_Service_UUID]])
         {
             [peripheral discoverCharacteristics:@[[BTManager Read_Characteristic_UUID], [BTManager Write_Characteristic_UUID], [BTManager Notify_Characteristic_UUID], [BTManager Indicate_Characteristic_UUID]] forService:svc];
+        }
+        else if ([[svc UUID] isEqual:[BTManager Battery_Service_UUID]])
+        {
+            NSLog(@"[BTManager] 🔎 發現電池服務 (180F)，掃描特徵值...");
+            [peripheral discoverCharacteristics:@[[BTManager Batter_Level_Characteristic_UUID]] forService:svc];
         }
         else
         {
@@ -411,6 +451,16 @@
 
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error
 {
+    if ([[characteristic UUID] isEqual:[BTManager Batter_Level_Characteristic_UUID]])
+    {
+        if ([[characteristic value] length] > 0)
+        {
+            const uint8_t *val = [[characteristic value] bytes];
+            uint8_t level = val[0];
+            NSLog(@"[BTManager] 🔋 收到電量: %d%%", level);
+        }
+    }
+    
     if (self.onData)
     {
         self.onData(characteristic.value);

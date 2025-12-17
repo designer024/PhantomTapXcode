@@ -35,12 +35,12 @@
     
     [UIView animateWithDuration:0.3 animations:^{
         toastLabel.alpha = 1.0;
-        NSLog(@"show toast");
+        NSLog(@"show toast: %@", aMessage);
     } completion:^(BOOL finished) {
         [UIView animateWithDuration:0.3 delay:2.0 options:UIViewAnimationOptionCurveEaseOut animations:^{
             toastLabel.alpha = 0.0;
         } completion:^(BOOL finished) {
-            NSLog(@"hide toast");
+            NSLog(@"hide toast: %@", aMessage);
             [toastLabel removeFromSuperview];
         }];
     }];
